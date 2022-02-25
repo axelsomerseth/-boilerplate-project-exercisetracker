@@ -3,6 +3,8 @@ const app = express();
 const cors = require('cors');
 require('dotenv').config();
 
+const port = process.env.PORT || 3000;
+
 // CORS policy: allow requests
 app.use(cors());
 
@@ -13,9 +15,25 @@ app.get('/', (req, res) => {
 });
 
 
+const createUser = require('./repository.js').createUser;
+app.post('/api/users', (req, res) => {
+    createUser('axelsomerseth', (err, doc) => {
+        if (err) {
+            res.json({ error: err });
+            return;
+        }
+        const result = {
+            _id: doc._id,
+            username: doc.username,
+        };
+        res.json(result);
+    });
+});
 
 
 
-const listener = app.listen(process.env.PORT || 3000, () => {
-    console.log('Your app is listening on port ' + listener.address().port);
+
+
+const listener = app.listen(port, () => {
+    console.log('✅ your app is listening on port ' + listener.address().port);
 });
