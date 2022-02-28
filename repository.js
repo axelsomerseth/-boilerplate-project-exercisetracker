@@ -1,30 +1,4 @@
-//		MODELS
-
-const user = {
-    username: "fcc_test",
-    _id: "5fb5853f734231456ccb3b05"
-};
-
-const excercise = {
-    username: "fcc_test",
-    description: "test",
-    duration: 60,
-    date: "Mon Jan 01 1990",
-    _id: "5fb5853f734231456ccb3b05",
-};
-
-const log = {
-    username: "fcc_test",
-    count: 1,
-    _id: "5fb5853f734231456ccb3b05",
-    log: [{
-        description: "test",
-        duration: 60,
-        date: "Mon Jan 01 1990",
-    }]
-};
-
-// DB Connection
+// Imports and DB Connection
 const mongoose = require('mongoose');
 const { Schema } = mongoose;
 const mySecrets = process.env['MONGO_URI'];
@@ -39,8 +13,14 @@ const userSchema = new Schema({
 });
 let User = mongoose.model('User', userSchema);
 
-// Excercise model
-
+// Exercise model
+const exerciseSchema = new Schema({
+    userID: { type: String, required: true },
+    description: { type: String, required: true },
+    duration: { type: Number, required: true },
+    date: { type: String, required: false },
+});
+let Exercise = mongoose.model('exercise', exerciseSchema);
 
 // CRUD Operations
 const createUser = (username, done) => {
@@ -53,5 +33,52 @@ const createUser = (username, done) => {
     });
 };
 
+const listUsers = (done) => {
+    User.find((err, docs) => {
+        if (err) done(err);
+        done(null, docs);
+    });
+};
+
+
+const getUser = (userID, done) => {
+    User.findById(userID, (err, doc) => {
+        if (err) done(err);
+        done(null, doc);
+    });
+};
+
+const createExercise = (exercisePayload, done) => {
+    getUser(exercisePayload[':_id'], (err, user) => {
+        if (err) done(err);
+        if (!exercisePayload.date) {
+            exercisePayload.date = new Date().toDateString();
+        }
+        const e = {
+            userID: user._id,
+            description: exercisePayload.description,
+            duration: exercisePayload.duration,
+            date: exercisePayload.date,
+        };
+        const exerciseModel = new Exercise(e);
+        exerciseModel.save((err, exercise) => {
+            if (err) done(err);
+            const exerciseResponse = {
+                // user fields
+                _id: user._id,
+                username: user.username,
+                // exercise fields
+                description: exercise.description,
+                duration: exercise.duration,
+                date: exercise.date,
+            }
+            done(null, exerciseResponse);
+        });
+    });
+};
+
+
 // Exports
 exports.createUser = createUser;
+exports.listUsers = listUsers;
+exports.createExercise = createExercise;
