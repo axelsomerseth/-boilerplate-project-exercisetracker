@@ -11,6 +11,7 @@ app.use(cors());
 
 // Serve static files
 app.use(express.static('public'));
+
 app.get('/', (req, res) => {
     res.sendFile(__dirname + '/views/index.html')
 });
@@ -46,7 +47,6 @@ app.get('/api/users', (req, res) => {
     });
 });
 
-
 const createExercise = require('./repository.js').createExercise;
 app.post('/api/users/:_id/exercises', (req, res) => {
     createExercise(req.body, (err, doc) => {
@@ -71,10 +71,6 @@ app.get('/api/users/:_id/logs', (req, res) => {
     });
 });
 
-
-
-
-
 const listener = app.listen(port, () => {
-    console.log('✅ your app is listening on port ' + listener.address().port);
+    console.debug('✅ your app is listening on port ' + listener.address().port);
 });
