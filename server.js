@@ -47,9 +47,21 @@ app.get('/api/users', (req, res) => {
 });
 
 
-const createexercise = require('./repository.js').createexercise;
+const createExercise = require('./repository.js').createExercise;
 app.post('/api/users/:_id/exercises', (req, res) => {
-    createexercise(req.body, (err, doc) => {
+    createExercise(req.body, (err, doc) => {
+        if (err) {
+            console.error(err);
+            res.json({ error: err });
+            return;
+        }
+        res.json(doc);
+    });
+});
+
+const listLogs = require('./repository').listLogs;
+app.get('/api/users/:_id/logs', (req, res) => {
+    listLogs(req.params._id, (err, doc) => {
         if (err) {
             console.error(err);
             res.json({ error: err });

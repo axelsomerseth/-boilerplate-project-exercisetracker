@@ -40,7 +40,6 @@ const listUsers = (done) => {
     });
 };
 
-
 const getUser = (userID, done) => {
     User.findById(userID, (err, doc) => {
         if (err) done(err);
@@ -77,8 +76,28 @@ const createExercise = (exercisePayload, done) => {
     });
 };
 
+const listLogs = (userID, done) => {
+    User.findById(userID, (err, user) => {
+        if (err) done(err);
+        Exercise.find({ userID: user._id }, (err, logs) => {
+            if (err) done(err);
+            const result = {
+                _id: user._id,
+                username: user.username,
+                count: logs.length,
+                log: logs.length && logs.map(e => ({
+                    description: e.description,
+                    duration: e.duration,
+                    date: e.date
+                })),
+            };
+            done(null, result);
+        });
+    });
+};
 
 // Exports
 exports.createUser = createUser;
 exports.listUsers = listUsers;
 exports.createExercise = createExercise;
+exports.listLogs = listLogs;
