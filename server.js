@@ -48,14 +48,25 @@ app.get('/api/users', (req, res) => {
 });
 
 const createExercise = require('./repository.js').createExercise;
-app.post('/api/users/:_id/exercises', (req, res) => {
-    createExercise(req.body, (err, doc) => {
+const getUser = require('./repository.js').getUser;
+app.post('/api/users/:_id/exercises', (req, res, next) => {
+    getUser(req.params._id, (err, user) => {
         if (err) {
             console.error(err);
             res.json({ error: err });
-            return;
+            return next(err);
         }
-        res.json(doc);
+        if (!user) {
+            return next(err);
+        }
+        createExercise(user, req.body, (err, doc) => {
+            if (err) {
+                console.error(err);
+                res.json({ error: err });
+                return next(err);
+            }
+            res.json(doc);
+        });
     });
 });
 

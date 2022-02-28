@@ -47,36 +47,33 @@ const getUser = (userID, done) => {
     });
 };
 
-const createExercise = (exercisePayload, done) => {
-    getUser(exercisePayload[':_id'], (err, user) => {
+const createExercise = (user, exercisePayload, done) => {
+    const isValidDate = exercisePayload.date &&
+        new Date(exercisePayload.date).toDateString() !== 'Invalid Date';
+    if (isValidDate) {
+        exercisePayload.date = new Date(exercisePayload.date + ' 00:00:00');
+    } else {
+        exercisePayload.date = new Date();
+    }
+    const e = {
+        userID: user._id,
+        description: exercisePayload.description,
+        duration: exercisePayload.duration,
+        date: exercisePayload.date,
+    };
+    const exerciseModel = new Exercise(e);
+    exerciseModel.save((err, exercise) => {
         if (err) done(err);
-        const isValidDate = exercisePayload.date &&
-            new Date(exercisePayload.date).toDateString() !== 'Invalid Date';
-        if (isValidDate) {
-            exercisePayload.date = new Date(exercisePayload.date + ' 00:00:00');
-        } else {
-            exercisePayload.date = new Date();
+        const exerciseResponse = {
+            // user fields
+            _id: user._id,
+            username: user.username,
+            // exercise fields
+            description: exercise.description,
+            duration: exercise.duration,
+            date: exercise.date.toDateString(),
         }
-        const e = {
-            userID: user._id,
-            description: exercisePayload.description,
-            duration: exercisePayload.duration,
-            date: exercisePayload.date,
-        };
-        const exerciseModel = new Exercise(e);
-        exerciseModel.save((err, exercise) => {
-            if (err) done(err);
-            const exerciseResponse = {
-                // user fields
-                _id: user._id,
-                username: user.username,
-                // exercise fields
-                description: exercise.description,
-                duration: exercise.duration,
-                date: exercise.date.toDateString(),
-            }
-            done(null, exerciseResponse);
-        });
+        done(null, exerciseResponse);
     });
 };
 
@@ -112,6 +109,7 @@ const listLogs = (userID, filters, done) => {
 
 // Exports
 exports.createUser = createUser;
+exports.getUser = getUser;
 exports.listUsers = listUsers;
 exports.createExercise = createExercise;
 exports.listLogs = listLogs;
