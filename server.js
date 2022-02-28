@@ -61,7 +61,7 @@ app.post('/api/users/:_id/exercises', (req, res) => {
 
 const listLogs = require('./repository').listLogs;
 app.get('/api/users/:_id/logs', (req, res) => {
-    listLogs(req.params._id, (err, doc) => {
+    listLogs(req.params._id, req.query, (err, doc) => {
         if (err) {
             console.error(err);
             res.json({ error: err });

@@ -18,9 +18,9 @@ const exerciseSchema = new Schema({
     userID: { type: String, required: true },
     description: { type: String, required: true },
     duration: { type: Number, required: true },
-    date: { type: String, required: false },
+    date: { type: Date, required: false },
 });
-let Exercise = mongoose.model('exercise', exerciseSchema);
+let Exercise = mongoose.model('Exercise', exerciseSchema);
 
 // CRUD Operations
 const createUser = (username, done) => {
@@ -50,8 +50,12 @@ const getUser = (userID, done) => {
 const createExercise = (exercisePayload, done) => {
     getUser(exercisePayload[':_id'], (err, user) => {
         if (err) done(err);
-        if (!exercisePayload.date) {
-            exercisePayload.date = new Date().toDateString();
+        const isValidDate = exercisePayload.date &&
+            new Date(exercisePayload.date).toDateString() !== 'Invalid Date';
+        if (isValidDate) {
+            exercisePayload.date = new Date(exercisePayload.date + ' 00:00:00');
+        } else {
+            exercisePayload.date = new Date();
         }
         const e = {
             userID: user._id,
@@ -69,17 +73,27 @@ const createExercise = (exercisePayload, done) => {
                 // exercise fields
                 description: exercise.description,
                 duration: exercise.duration,
-                date: exercise.date,
+                date: exercise.date.toDateString(),
             }
             done(null, exerciseResponse);
         });
     });
 };
 
-const listLogs = (userID, done) => {
+const listLogs = (userID, filters, done) => {
     User.findById(userID, (err, user) => {
         if (err) done(err);
-        Exercise.find({ userID: user._id }, (err, logs) => {
+        const queryFilters = {
+            userID: user._id,
+            date: {},
+        }
+        if (filters.from) {
+            queryFilters.date.$gte = filters.from;
+        }
+        if (filters.to) {
+            queryFilters.date.$lte = filters.to;
+        }
+        Exercise.find(queryFilters, (err, logs) => {
             if (err) done(err);
             const result = {
                 _id: user._id,
@@ -92,7 +106,7 @@ const listLogs = (userID, done) => {
                 })),
             };
             done(null, result);
-        });
+        }).limit(filters.limit || null);
     });
 };
 
