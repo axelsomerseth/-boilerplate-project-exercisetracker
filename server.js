@@ -71,14 +71,24 @@ app.post('/api/users/:_id/exercises', (req, res, next) => {
 });
 
 const listLogs = require('./repository').listLogs;
-app.get('/api/users/:_id/logs', (req, res) => {
-    listLogs(req.params._id, req.query, (err, doc) => {
+app.get('/api/users/:_id/logs', (req, res, next) => {
+    getUser(req.params._id, (err, user) => {
         if (err) {
             console.error(err);
             res.json({ error: err });
-            return;
+            return next(err);
         }
-        res.json(doc);
+        if (!user) {
+            return next(err);
+        }
+        listLogs(user, req.query, (err, doc) => {
+            if (err) {
+                console.error(err);
+                res.json({ error: err });
+                return next(err);
+            }
+            res.json(doc);
+        });
     });
 });
 

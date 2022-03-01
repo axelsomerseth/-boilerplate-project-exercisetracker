@@ -77,34 +77,29 @@ const createExercise = (user, exercisePayload, done) => {
     });
 };
 
-const listLogs = (userID, filters, done) => {
-    User.findById(userID, (err, user) => {
+const listLogs = (user, filters, done) => {
+    const queryFilters = {
+        userID: user._id,
+    }
+    if (filters.from || filters.to) {
+        queryFilters.date = {};
+        if (filters.from) queryFilters.date.$gte = filters.from;
+        if (filters.to) queryFilters.date.$lte = filters.to;
+    }
+    Exercise.find(queryFilters, (err, logs) => {
         if (err) done(err);
-        const queryFilters = {
-            userID: user._id,
-            date: {},
-        }
-        if (filters.from) {
-            queryFilters.date.$gte = filters.from;
-        }
-        if (filters.to) {
-            queryFilters.date.$lte = filters.to;
-        }
-        Exercise.find(queryFilters, (err, logs) => {
-            if (err) done(err);
-            const result = {
-                _id: user._id,
-                username: user.username,
-                count: logs.length,
-                log: logs.length && logs.map(e => ({
-                    description: e.description,
-                    duration: e.duration,
-                    date: e.date
-                })),
-            };
-            done(null, result);
-        }).limit(filters.limit || null);
-    });
+        const result = {
+            _id: user._id,
+            username: user.username,
+            count: logs.length,
+            log: logs.length && logs.map(e => ({
+                description: e.description,
+                duration: e.duration,
+                date: e.date
+            })),
+        };
+        done(null, result);
+    }).limit(filters.limit || null);
 };
 
 // Exports
