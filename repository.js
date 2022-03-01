@@ -51,9 +51,9 @@ const createExercise = (user, exercisePayload, done) => {
     const isValidDate = exercisePayload.date &&
         new Date(exercisePayload.date).toDateString() !== 'Invalid Date';
     if (isValidDate) {
-        exercisePayload.date = new Date(exercisePayload.date + ' 00:00:00');
+        exercisePayload.date = new Date(exercisePayload.date);
     } else {
-        exercisePayload.date = new Date();
+        exercisePayload.date = new Date(Date.now());
     }
     const e = {
         userID: user._id,
@@ -95,7 +95,7 @@ const listLogs = (user, filters, done) => {
             log: logs.length && logs.map(e => ({
                 description: e.description,
                 duration: e.duration,
-                date: e.date
+                date: e.date.toDateString()
             })),
         };
         done(null, result);
